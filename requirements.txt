@@ -1,5 +1,4 @@
 ﻿anyio==4.5.2
-backports.zoneinfo==0.2.1
 certifi==2026.1.4
 cffi>=1.17.1
 charset-normalizer==3.4.4
@@ -39,4 +38,5 @@ tzdata==2025.3
 tzlocal==5.2
 uritemplate==4.1.1
 urllib3==2.2.3
+
 
