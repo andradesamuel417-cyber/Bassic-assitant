@@ -29,6 +29,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
+print("TOKEN:", TOKEN)  # solo para verificar en logs de Railway
 
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -438,3 +439,4 @@ app.add_handler(CommandHandler("hoy", hoy))
 
 print("🤖 Bot corriendo...")
 app.run_polling()
+
