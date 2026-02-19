@@ -1,10 +1,13 @@
 import datetime
 import os
-import pickle
+
 import pytz
 import re
 import dateparser
 
+import json
+from googleapiclient.discovery import build
+from google.oauth2.service_account import Credentials
 
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
@@ -27,37 +30,33 @@ from googleapiclient.discovery import build
 import os
 from dotenv import load_dotenv
 
-
-import os
-from telegram.ext import ApplicationBuilder
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-
-if not BOT_TOKEN:
-    raise ValueError("No se encontró la variable de entorno BOT_TOKEN")  # evita crasheos silenciosos
-
-print("TOKEN cargado correctamente")  # temporal, solo para debug
-
-app = ApplicationBuilder().token(BOT_TOKEN).build()
-
-
+load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
-SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+
+from google.oauth2.service_account import Credentials
+
 
 TIMEZONE = pytz.timezone("America/Guayaquil")
 
 ASK_DURATION = 1
 
 
-# -------- GOOGLE SERVICE --------
-def get_service():
-    creds = None
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
+SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-    service = build('calendar', 'v3', credentials=creds)
+# Cargar JSON desde variable de entorno
+service_account_info = json.loads(os.getenv("SERVICE_ACCOUNT_JSON"))
+
+# Crear credenciales
+credentials = Credentials.from_service_account_info(
+    service_account_info,
+    scopes=SCOPES
+)
+
+# Función para obtener el servicio de Calendar
+def get_service():
+    service = build('calendar', 'v3', credentials=credentials)
     return service
 
 
@@ -449,5 +448,3 @@ app.add_handler(CommandHandler("hoy", hoy))
 
 print("🤖 Bot corriendo...")
 app.run_polling()
-
-
