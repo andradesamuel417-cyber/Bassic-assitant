@@ -35,29 +35,23 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
 
-from google.oauth2.service_account import Credentials
-
 
 TIMEZONE = pytz.timezone("America/Guayaquil")
 
 ASK_DURATION = 1
+import json
+import os
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
 
-
-SCOPES = ['https://www.googleapis.com/auth/calendar']
-
-# Cargar JSON desde variable de entorno
 service_account_info = json.loads(os.getenv("SERVICE_ACCOUNT_JSON"))
 
-# Crear credenciales
 credentials = Credentials.from_service_account_info(
     service_account_info,
-    scopes=SCOPES
+    scopes=['https://www.googleapis.com/auth/calendar']
 )
 
-# Función para obtener el servicio de Calendar
-def get_service():
-    service = build('calendar', 'v3', credentials=credentials)
-    return service
+service = build('calendar', 'v3', credentials=credentials)
 
 
 def check_conflict(service, start_time, end_time):
@@ -448,3 +442,4 @@ app.add_handler(CommandHandler("hoy", hoy))
 
 print("🤖 Bot corriendo...")
 app.run_polling()
+
