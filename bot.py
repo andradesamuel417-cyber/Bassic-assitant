@@ -40,25 +40,17 @@ TIMEZONE = pytz.timezone("America/Guayaquil")
 
 ASK_DURATION = 1
 import json
-import os
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
-SCOPES = ['https://www.googleapis.com/auth/calendar']
-
-# Cargar JSON desde variable de entorno
-service_account_info = json.loads(os.getenv("SERVICE_ACCOUNT_JSON"))
-
-# Crear credenciales
+SERVICE_ACCOUNT_JSON = os.getenv("SERVICE_ACCOUNT_JSON")
+credentials_info = json.loads(SERVICE_ACCOUNT_JSON)
 credentials = Credentials.from_service_account_info(
-    service_account_info,
-    scopes=SCOPES
+    credentials_info,
+    scopes=['https://www.googleapis.com/auth/calendar']
 )
 
-# Función para obtener el servicio de Calendar
-def get_service():
-    service = build('calendar', 'v3', credentials=credentials)
-    return service)
+service = build('calendar', 'v3', credentials=credentials)
 
 
 def check_conflict(service, start_time, end_time):
@@ -370,6 +362,27 @@ async def hoy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     start_day = tz.localize(datetime.combine(now.date(), time.min))
     end_day = tz.localize(datetime.combine(now.date(), time.max))
 
+    # Usa directamente el service ya creado
+    events_result = service.events().list(
+        calendarId='primary',
+        timeMin=start_day.isoformat(),
+        timeMax=end_day.isoformat(),
+        singleEvents=True,
+        orderBy='startTime'
+    ).execute()
+
+    events = events_result.get('items', [])
+    if not events:
+        await update.message.reply_text("🎉 No tienes eventos hoy.")
+        return
+        
+async def hoy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    tz = pytz.timezone("America/Guayaquil")
+    now = datetime.now(tz)
+
+    start_day = tz.localize(datetime.combine(now.date(), time.min))
+    end_day = tz.localize(datetime.combine(now.date(), time.max))
+
     service = get_service()
 
     events_result = service.events().list(
@@ -385,34 +398,6 @@ async def hoy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not events:
         await update.message.reply_text("🎉 No tienes eventos hoy.")
         return
-
-    message = f"📅 Agenda de hoy ({now.strftime('%d %B %Y')})\n\n"
-
-    for i, event in enumerate(events):
-        start_raw = event['start'].get('dateTime', event['start'].get('date'))
-        end_raw = event['end'].get('dateTime', event['end'].get('date'))
-
-        dt_start = dateparser.parse(start_raw)
-        dt_end = dateparser.parse(end_raw)
-
-        if 'dateTime' in event['start']:
-            duration = dt_end - dt_start
-            hours = duration.seconds // 3600
-            minutes = (duration.seconds % 3600) // 60
-
-            message += (
-                f"{i+1}. {event['summary']} - "
-                f"{dt_start.strftime('%H:%M')} "
-                f"({hours}h {minutes}m)\n"
-            )
-        else:
-            # Evento de todo el día
-            message += (
-                f"{i+1}. {event['summary']} - "
-                f"📅 Todo el día\n"
-            )
-
-
 
 
 # -------- MAIN --------
@@ -449,5 +434,6 @@ app.add_handler(CommandHandler("hoy", hoy))
 
 print("🤖 Bot corriendo...")
 app.run_polling()
+
 
 
