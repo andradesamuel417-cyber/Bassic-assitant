@@ -27,9 +27,19 @@ from googleapiclient.discovery import build
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
-print("TOKEN:", TOKEN)  # solo para verificar en logs de Railway
+
+import os
+from telegram.ext import ApplicationBuilder
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise ValueError("No se encontró la variable de entorno BOT_TOKEN")  # evita crasheos silenciosos
+
+print("TOKEN cargado correctamente")  # temporal, solo para debug
+
+app = ApplicationBuilder().token(BOT_TOKEN).build()
+
 
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -439,4 +449,5 @@ app.add_handler(CommandHandler("hoy", hoy))
 
 print("🤖 Bot corriendo...")
 app.run_polling()
+
 
