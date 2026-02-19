@@ -44,14 +44,21 @@ import os
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
+SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+# Cargar JSON desde variable de entorno
 service_account_info = json.loads(os.getenv("SERVICE_ACCOUNT_JSON"))
 
+# Crear credenciales
 credentials = Credentials.from_service_account_info(
     service_account_info,
-    scopes=['https://www.googleapis.com/auth/calendar']
+    scopes=SCOPES
 )
 
-service = build('calendar', 'v3', credentials=credentials)
+# Función para obtener el servicio de Calendar
+def get_service():
+    service = build('calendar', 'v3', credentials=credentials)
+    return service)
 
 
 def check_conflict(service, start_time, end_time):
@@ -442,4 +449,5 @@ app.add_handler(CommandHandler("hoy", hoy))
 
 print("🤖 Bot corriendo...")
 app.run_polling()
+
 
